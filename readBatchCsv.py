@@ -13,8 +13,11 @@ for file_ in allFiles:
 
 frame = pd.concat(list_, axis = 0, ignore_index = True)
 
+### Filtering columns
+# isCountry = frame['Country Name'] == 'Brazil' # Country Name = header, Brazil = Values in column
+# newFrame = frame[isCountry]
+
 # print(frame)
 writer = ExcelWriter(r'C:\PyCharm\PycharmProjects\workingExcel\csvblock\outputx.xlsx')
 frame.to_excel(writer,'Sheet1')
 writer.save()
-
