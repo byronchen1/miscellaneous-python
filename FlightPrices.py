@@ -40,7 +40,7 @@ class Flightbot:
         self.driver.find_element_by_xpath("//div[@id=\"sbse0\"]").click()
         time.sleep(2)
 
-    def departure_date(self, DEPARTURE_DATE, TOTAL_DAYS=7):
+    def departure_date(self, DEPARTURE_DATE):
         # Departing date
         Dep_Date_XPATH = r'//*[@id="flt-app"]/div[2]/main[1]/div[4]/div/div[3]/div/div[2]/div[4]/div[1]'
         self.driver.find_element_by_xpath(Dep_Date_XPATH).click()
@@ -50,28 +50,25 @@ class Flightbot:
         self.driver.find_element_by_xpath("//input[@placeholder=\"Departure date\"]").send_keys(Keys.ENTER)
         time.sleep(3)
 
-        Inc_Days_Btn = r'//*[@id="flt-modaldialog"]/div/div[5]/div[2]/div[1]/jsl[3]/span[4]'
-        for i in range(TOTAL_DAYS - 4):
-            self.driver.find_element_by_xpath(Inc_Days_Btn).click()
-            time.sleep(1)
-
-        time.sleep(2)
-
-    def view_specific_month(self, CURR_MONTH_NUM, ARRIVAL_LOCATION, TOTAL_DAYS=7):
+    def view_specific_month(self, CURR_MONTH_NUM, ARRIVAL_LOCATION):
         data = []
-
-        # Maximum of 5 weeks per month
-        for i in range(5):
-            # Maximum of 7 days per week
-            for j in range(7):
-                try:
-                    the_date = fr'//*[@id="flt-modaldialog"]/div/two-month-calendar/div/div/calendar-month[{CURR_MONTH_NUM - 2}]/calendar-week[{i + 1}]/calendar-day[{j + 1}]/div[3]'
-                    the_price = fr'//*[@id="flt-modaldialog"]/div/two-month-calendar/div/div/calendar-month[{CURR_MONTH_NUM - 2}]/calendar-week[{i + 1}]/calendar-day[{j + 1}]/div[4]/span[1]'
-                    date_num = self.driver.find_element_by_xpath(the_date).text
-                    price_num = self.driver.find_element_by_xpath(the_price).text
-                    data.append([ARRIVAL_LOCATION, CURR_MONTH_NUM, date_num, price_num, TOTAL_DAYS])
-                except:
-                    pass
+        Inc_Days_Btn = r'//*[@id="flt-modaldialog"]/div/div[5]/div[2]/div[1]/jsl[3]/span[4]'
+        #4 to 8 day trip
+        for h in range(5):
+            # Maximum of 5 weeks per month
+            for i in range(5):
+                # Maximum of 7 days per week
+                for j in range(7):
+                    try:
+                        the_date = fr'//*[@id="flt-modaldialog"]/div/two-month-calendar/div/div/calendar-month[{CURR_MONTH_NUM - 2}]/calendar-week[{i + 1}]/calendar-day[{j + 1}]/div[3]'
+                        the_price = fr'//*[@id="flt-modaldialog"]/div/two-month-calendar/div/div/calendar-month[{CURR_MONTH_NUM - 2}]/calendar-week[{i + 1}]/calendar-day[{j + 1}]/div[4]/span[1]'
+                        date_num = self.driver.find_element_by_xpath(the_date).text
+                        price_num = self.driver.find_element_by_xpath(the_price).text
+                        data.append([ARRIVAL_LOCATION, CURR_MONTH_NUM, date_num, price_num, h+4])
+                    except:
+                        pass
+            self.driver.find_element_by_xpath(Inc_Days_Btn).click()
+            time.sleep(2)
 
         # Close Calendar by refreshing page
         self.driver.execute_script("location.reload()")
@@ -93,7 +90,6 @@ if __name__ == "__main__":
     DEPARTURE_DATE = r'Wed, 1 Jul'  # Format must be 'Ddd, #, Mmm'
     CURR_MONTH_NUM = 7  # July = 7
 
-    TOTAL_DAYS = 7
     DESTINATIONS = json.loads(open('FLIGHT_DESTINATIONS.json').read())
     DEPARTURE_LOCATION = 'TORONTO'
     appended_data = []
@@ -108,9 +104,9 @@ if __name__ == "__main__":
         for ARRIVAL_LOCATION in DESTINATIONS:
             MY_BOT.arriving(ARRIVAL_LOCATION=ARRIVAL_LOCATION)
 
-            MY_BOT.departure_date(DEPARTURE_DATE=DEPARTURE_DATE,
-                                  TOTAL_DAYS=TOTAL_DAYS)
+            MY_BOT.departure_date(DEPARTURE_DATE=DEPARTURE_DATE)
 
+            # Returns DF
             myData = MY_BOT.view_specific_month(CURR_MONTH_NUM=CURR_MONTH_NUM,
                                                 ARRIVAL_LOCATION=ARRIVAL_LOCATION)
 
