@@ -1,0 +1,51 @@
+# csv file retrieved from:
+# https://health-infobase.canada.ca/covid-19/epidemiological-summary-covid-19-cases.html
+
+import pandas as pd
+import numpy as np
+import plotly.express as px
+
+
+df = pd.read_csv('covid19.csv')
+df=df[['date','prname','numconf','numdeaths','numtested', 'numrecover','numtoday','testedtoday','recoveredtoday','deathstoday']]
+df['date'] = pd.to_datetime(df['date'])
+df['numoutstanding']=df['numconf']-df['numrecover']-df['numdeaths']
+df=df[(df['prname']!='Canada') & (df['prname']!='Repatriated travellers') ]
+df=df[df['date']=='2020-06-22']
+
+fig = px.bar(
+    df, 
+    x="prname", 
+    y="numoutstanding", 
+
+)
+
+fig.update_layout(
+    title={
+        'text': "covid19-visual",
+        'y':0.95,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'
+           },
+    
+    xaxis_title="Province",
+    yaxis_title="Cases",
+    legend_title_text='Province',
+    
+    legend=dict(
+        x=1,
+        y=1,
+        traceorder="normal",
+        font=dict(
+            family="times-new-roman",
+            size=12,
+            color="black"
+        ),
+
+        bordercolor="Black",
+        borderwidth=2
+    ),
+    xaxis={'categoryorder':'total descending'}
+)
+fig.show()
