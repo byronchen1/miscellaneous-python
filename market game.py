@@ -123,7 +123,7 @@ class market_game:
         days = 756 - mg.days_elapsed
         bh_equity = round((10000 / self.sample_data_hidden["Close"][503]) * float(self.sample_data_hidden["Close"][self.days_elapsed-1]),2)
         alpha = round(equity - bh_equity,2)
-        alpha_pct = round((equity - bh_equity)/equity,2)
+        alpha_pct = round((equity - bh_equity)/bh_equity,2)
 
         return f'Cash: {cash} | Shares {shares} | Price {price}' \
                f'\n Equity {equity} | Days Remaining {days}' \
@@ -175,14 +175,14 @@ if __name__ == "__main__":
     button_px=3
     button_py=3
     button = tk.Button(root, text='View Chart', command=mg.show_chart)
-    button_5d = tk.Button(root, text='+1 day', command=lambda: reconfig_bal(1))
-    button_20d = tk.Button(root, text='+5 days', command=lambda: reconfig_bal(5))
-    button_80d = tk.Button(root, text='+20 days', command=lambda: reconfig_bal(20))
+    button_1d = tk.Button(root, text='+1 day', command=lambda: reconfig_bal(1))
+    button_5d = tk.Button(root, text='+5 days', command=lambda: reconfig_bal(5))
+    button_20d = tk.Button(root, text='+20 days', command=lambda: reconfig_bal(20))
     button_max = tk.Button(root, text='Skip to final', command=lambda: reconfig_bal(252))
     button.grid(row=0, column=0, padx=button_px, pady=button_py)
-    button_5d.grid(row=1, column=0, padx=button_px, pady=button_py)
-    button_20d.grid(row=2, column=0, padx=button_px, pady=button_py)
-    button_80d.grid(row=3, column=0, padx=button_px, pady=button_py)
+    button_1d.grid(row=1, column=0, padx=button_px, pady=button_py)
+    button_5d.grid(row=2, column=0, padx=button_px, pady=button_py)
+    button_20d.grid(row=3, column=0, padx=button_px, pady=button_py)
     button_max.grid(row=4, column=0, padx=button_px, pady=button_py)
 
     # Update Cash & Holdings
