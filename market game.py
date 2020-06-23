@@ -22,7 +22,7 @@ class market_game:
 
         # 252 = 1 year data, 252*2 = 504, 252*3= 756
         rand_start_date = np.random.randint(0, len(df) - 755)
-        self.random_year_data = df[rand_start_date:rand_start_date + 756].reset_index()
+        self.random_year_data = df[rand_start_date:rand_start_date + 755].reset_index()
 
         # display
         sample_data_hidden = self.random_year_data[['High', 'Low', 'Open', 'Close', 'Volume']]
