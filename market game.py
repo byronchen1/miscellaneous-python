@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import pandas_datareader.data as web
 import plotly.graph_objects as go
+import tkinter as tk
 
 
 class market_game:
@@ -29,6 +30,10 @@ class market_game:
         self.sample_data_hidden['Volume_str'] = sample_data_hidden['Volume'].apply(
             lambda x: str(round(x / 1000000, 2)) + ' MM')
         self.days_elapsed = 504
+
+        # starting holdings
+        self.cash = 10000
+        self.shares = 0
 
     def _generate_visual_hidden(self):
         # show 2 years of data
@@ -88,7 +93,30 @@ class market_game:
         return fig
 
     def closing_price(self):
-        return self.sample_data_hidden['Close'][:self.days_elapsed]
+        return float(self.sample_data_hidden['Close'][self.days_elapsed-1])
+
+    def buy(self, action_shares):
+        # Leverage at most 2x equity
+        try:
+            buy=self.closing_price()*int(action_shares)
+            if abs(buy) < (self.cash * 2 + (self.shares * self.closing_price())):
+                self.cash -= buy
+                self.shares += int(action_shares)
+        except:
+            pass
+
+    def sell(self, action_shares):
+        # No short selling
+        try:
+            sell=self.closing_price()*int(action_shares)
+            if self.shares >= int(action_shares):
+                self.cash += sell
+                self.shares -= int(action_shares)
+        except:
+            pass
+
+    def balances(self):
+        return f'Cash: {round(self.cash,2)} | Shares {self.shares} | Price {self.closing_price()}'
 
     def latest_graph(self, days=0):
         try:
@@ -100,20 +128,64 @@ class market_game:
             self.days_elapsed += 0
 
         if self.days_elapsed < 756:
-            return self._generate_visual_hidden()
+            #return self._generate_visual_hidden()
+            self._generate_visual_hidden().show()
         if self.days_elapsed >= 756:
-            return self._finished_game()
+            #return self._finished_game()
+            self._finished_game().show()
 
 
 
 if __name__ == "__main__":
+    # Start Game
     mg = market_game()
 
-    continue_playing = True
-    while continue_playing:
-        try:
-            days_to_increment=input('Forward number of days?  Enter Q to quit game \n')
-            chart = mg.latest_graph(int(days_to_increment))
-            chart.show()
-        except:
-            continue_playing = False
+    root = tk.Tk()
+    root.title('Market Game')
+    root.geometry('380x170')
+    root.iconbitmap('stonks.ico')
+
+    # Display chart
+    button_px=3
+    button_py=3
+    button = tk.Button(root, text='Show Chart', command=mg.latest_graph)
+    button_5d = tk.Button(root, text='+5 days', command=lambda: mg.latest_graph(5))
+    button_20d = tk.Button(root, text='+20 days', command=lambda: mg.latest_graph(20))
+    button_80d = tk.Button(root, text='+80 days', command=lambda: mg.latest_graph(80))
+    button_max = tk.Button(root, text='Skip to final', command=lambda: mg.latest_graph(252))
+    button.grid(row=0, column=0, padx=button_px, pady=button_py)
+    button_5d.grid(row=1, column=0, padx=button_px, pady=button_py)
+    button_20d.grid(row=2, column=0, padx=button_px, pady=button_py)
+    button_80d.grid(row=3, column=0, padx=button_px, pady=button_py)
+    button_max.grid(row=4, column=0, padx=button_px, pady=button_py)
+
+    # Buying/Selling shares
+    button_px=3
+    button_py=3
+    shares_label = tk.Label(root, text='Enter shares')
+    entry_shares = tk.Entry(root, width=10, borderwidth=5)
+    button_buy = tk.Button(root, text='Buy', command=lambda: mg.buy(entry_shares.get()))
+    button_sell = tk.Button(root, text='Sell', command=lambda: mg.sell(entry_shares.get()))
+    shares_label.grid(row=0, column=1, padx=button_px, pady=button_py)
+    entry_shares.grid(row=1, column=1, padx=button_px, pady=button_py)
+    button_buy.grid(row=1, column=2, padx=button_px, pady=button_py)
+    button_sell.grid(row=1, column=3, padx=button_px, pady=button_py)
+
+    # Cash & Holdings
+    b=mg.balances()
+    bal_label = tk.Label(root, text=b)
+    bal_label.grid(row=3, column=1, padx=button_px, pady=button_py)
+
+    # Update Cash & Holdings
+    def reconfig_bal():
+        b=mg.balances()
+        bal_label.config(text=b)
+
+    update_bal_label = tk.Button(root, text = "Update Balances", command = reconfig_bal )
+    update_bal_label.grid(row=2, column=1, padx=button_px, pady=button_py)
+
+    # Leverage Rules
+    rules_label = tk.Label(root, text='Max Leverage = 2x | No Short Selling')
+    rules_label.grid(row=4, column=1, padx=button_px, pady=button_py)
+
+    root.mainloop()
